@@ -10,7 +10,12 @@ ENV arch="${arch:-arm64}"
 # I will install it here to make the Dockerfile generic
 #
 # Note: some apt-get packages below come from the list of dependencies of 'install-build-deps.sh'
+
+COPY script/ /app/docker
+
 RUN echo "~~~~~ Building for arch=${arch}" && \
+    chmod +x /app/docker/*.sh && \
+    /app/docker/prepare.sh && \
     apt-get update && apt-get install -y \
         bison \
         curl \
@@ -34,8 +39,6 @@ RUN echo "~~~~~ Building for arch=${arch}" && \
     && \
     pip install jinja2
 
-COPY script/ /app/docker
-
 # USER root ; and SHELL /bin/bash ; were required otherwise the following
 # RUN instruction would fail at the first chmod with 'missing operand'
 # see https://serverfault.com/a/960335/320690
@@ -45,6 +48,8 @@ SHELL ["/bin/bash", "-c"]
 RUN chmod +x /app/docker/*.sh && \
     . /app/docker/set_env.sh \
     && \
+    . /app/docker/set_proxy.sh \
+    && \
     echo "After set_env.sh" && \
     env \
     && \
@@ -52,6 +57,7 @@ RUN chmod +x /app/docker/*.sh && \
     && \
     cd /app && \
     curl 'https://chromium.googlesource.com/chromium/src/+/master/build/install-build-deps.sh?format=TEXT' | base64 -d > install-build-deps.sh && \
+    sed -i 's/${dev_list} snapcraft/${dev_list}/' install-build-deps.sh && \
     chmod 755 install-build-deps.sh && \
     ./install-build-deps.sh ${install_build_deps_sh_arch} --no-chromeos-fonts --no-prompt ${no_nacl} \
     && \
@@ -70,8 +76,8 @@ RUN chmod +x /app/docker/*.sh && \
     ./cef_create_projects.sh \
     && \
     cd /app/chromium_git/chromium/src && \
-    ninja ${ninja_debug_args} cefsimple chrome_sandbox && \
-    ninja ${ninja_release_args} cefsimple chrome_sandbox
+    ninja ${ninja_debug_args} cef chrome_sandbox && \
+    ninja ${ninja_release_args} cef chrome_sandbox
 
 WORKDIR /app
 
