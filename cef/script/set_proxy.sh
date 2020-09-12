@@ -1,5 +1,5 @@
 
-PROXY_ADDR=127.0.0.1
+PROXY_ADDR=$(route -4 | awk '/^default/ {print $2}')
 PROXY_PORT_HTTP=8118
 ProxyAddr=$PROXY_ADDR:$PROXY_PORT_HTTP
 
