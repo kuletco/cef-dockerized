@@ -17,6 +17,12 @@ RUN echo "~~~~~ Building for arch=${arch}" && \
     chmod +x /app/docker/*.sh && \
     /app/docker/prepare.sh && \
     apt-get update && apt-get install -y \
+        apt-transport-https \
+        ca-certificates \
+        net-tools \
+        procps \
+        bash-completion \
+        vim \
         bison \
         curl \
         flex \
