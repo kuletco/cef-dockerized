@@ -17,3 +17,7 @@ deb ${source_url}/debian-security ${os_codename}/updates main contrib non-free
 # deb-src ${source_url}/debian-security ${os_codename}/updates main contrib non-free
 EOF
 
+mv /root/.bashrc /root/.bashrc.root
+cp -a /etc/skel/.bashrc /root/
+sed -i 's/^#force_color_prompt/force_color_prompt/g'  /root/.bashrc
+sed -i 's/^#export GCC_COLORS/export GCC_COLORS/g'  /root/.bashrc
