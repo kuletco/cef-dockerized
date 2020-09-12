@@ -4,15 +4,20 @@ FROM debian:latest
 ARG arch=arm64
 ENV arch="${arch:-arm64}"
 
+COPY script/ /app/docker
+
+# USER root ; and SHELL /bin/bash ; were required otherwise the following
+# RUN instruction would fail at the first chmod with 'missing operand'
+# see https://serverfault.com/a/960335/320690
+USER root
+SHELL ["/bin/bash", "-c"]
+
 # NOTE: skipped
 # from https://bitbucket.org/chromiumembedded/cef/wiki/MasterBuildQuickStart.md#markdown-header-linux-setup
 # 3. Install the "libgtkglext1-dev" package required by the cefclient sample application only on non-arm platforms.
 # I will install it here to make the Dockerfile generic
 #
 # Note: some apt-get packages below come from the list of dependencies of 'install-build-deps.sh'
-
-COPY script/ /app/docker
-
 RUN echo "~~~~~ Building for arch=${arch}" && \
     chmod +x /app/docker/*.sh && \
     /app/docker/prepare.sh && \
@@ -43,15 +48,13 @@ RUN echo "~~~~~ Building for arch=${arch}" && \
     && \
     apt-get purge -y --auto-remove \
     && \
+    pip install -i https://mirrors.ustc.edu.cn/pypi/web/simple pip -U \
+    && \
+    pip config set global.index-url https://mirrors.ustc.edu.cn/pypi/web/simple \
+    && \
     pip install jinja2
 
-# USER root ; and SHELL /bin/bash ; were required otherwise the following
-# RUN instruction would fail at the first chmod with 'missing operand'
-# see https://serverfault.com/a/960335/320690
-USER root
-SHELL ["/bin/bash", "-c"]
-
-RUN chmod +x /app/docker/*.sh && \
+RUN echo "~~~~~ Syncing source codes for arch=${arch}" && \
     . /app/docker/set_env.sh \
     && \
     . /app/docker/set_proxy.sh \
